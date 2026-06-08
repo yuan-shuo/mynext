@@ -15,6 +15,8 @@ export default async function Home() {
           <form action={logout}>
             <button type="submit">退出登录</button>
           </form>
+          <Link href="/auth/change-password">修改密码</Link>
+          <Link href="/auth/change-email">换绑邮箱</Link>
         </div>
       ) : (
         <p>
