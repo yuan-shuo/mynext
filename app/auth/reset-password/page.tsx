@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import { resetPassword } from "@/app/actions/auth"
 import Link from "next/link"
@@ -14,13 +14,9 @@ export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [state, setState] = useState<{ error?: string; success?: boolean } | null>(null)
-  const [isValid, setIsValid] = useState(true)
-
-  useEffect(() => {
-    if (!token || !email) {
-      setIsValid(false)
-    }
-  }, [token, email])
+  
+  // 直接计算，不需要 useEffect
+  const isValid = token && email ? true : false
 
   const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()

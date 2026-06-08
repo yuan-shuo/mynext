@@ -62,7 +62,7 @@ export async function login(prevState: LoginState, formData: FormData): Promise<
       redirect: false,
     })
     return { success: true }
-  } catch (error) {
+  } catch {
     return {
       errorCode: ErrorCode.INVALID_PASSWORD,
       error: ErrorMessage[ErrorCode.INVALID_PASSWORD],

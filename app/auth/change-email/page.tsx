@@ -4,7 +4,7 @@ import { useState } from "react"
 import { sendChangeEmailLink } from "@/app/actions/auth"
 import { useSearchParams } from "next/navigation"
 import Link from "next/link"
-import { ErrorCode, ErrorMessage } from "@/lib/errors"
+import { ErrorMessage } from "@/lib/errors"
 
 export default function ChangeEmailForm() {
   const searchParams = useSearchParams()
