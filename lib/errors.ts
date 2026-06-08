@@ -17,6 +17,9 @@ export const ErrorCode = {
   // 验证链接相关
   LINK_INVALID: "LINK_INVALID",
   LINK_EXPIRED: "LINK_EXPIRED",
+
+  // 重发邮件相关
+  EMAIL_ALREADY_VERIFIED: "EMAIL_ALREADY_VERIFIED",
 } as const
 
 export type ErrorCode = typeof ErrorCode[keyof typeof ErrorCode]
@@ -35,4 +38,6 @@ export const ErrorMessage: Record<ErrorCode, string> = {
   
   [ErrorCode.LINK_INVALID]: "验证链接无效",
   [ErrorCode.LINK_EXPIRED]: "验证链接已过期，请重新注册",
+
+  [ErrorCode.EMAIL_ALREADY_VERIFIED]: "该邮箱已验证，请直接登录",
 }

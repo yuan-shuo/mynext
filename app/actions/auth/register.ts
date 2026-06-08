@@ -22,6 +22,7 @@ export async function register(prevState: RegisterState, formData: FormData): Pr
     return {
       errorCode: ErrorCode.MISSING_FIELDS,
       error: ErrorMessage[ErrorCode.MISSING_FIELDS],
+      email,
     }
   }
 
@@ -30,6 +31,7 @@ export async function register(prevState: RegisterState, formData: FormData): Pr
     return {
       errorCode: ErrorCode.INVALID_EMAIL,
       error: ErrorMessage[ErrorCode.INVALID_EMAIL],
+      email,
     }
   }
 
@@ -38,6 +40,7 @@ export async function register(prevState: RegisterState, formData: FormData): Pr
     return {
       errorCode: ErrorCode.WEAK_PASSWORD,
       error: ErrorMessage[ErrorCode.WEAK_PASSWORD],
+      email,
     }
   }
 
@@ -50,6 +53,7 @@ export async function register(prevState: RegisterState, formData: FormData): Pr
     return {
       errorCode: ErrorCode.EMAIL_ALREADY_EXISTS,
       error: ErrorMessage[ErrorCode.EMAIL_ALREADY_EXISTS],
+      email,
     }
   }
 

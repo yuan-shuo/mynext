@@ -26,11 +26,22 @@ export default function RegisterPage() {
     <form action={formAction}>
       <div>
         <label>邮箱</label>
-        <input name="email" type="email" required disabled={isPending} />
+        <input 
+          name="email" 
+          type="email" 
+          defaultValue={state?.email || ""}
+          required 
+          disabled={isPending} 
+        />
       </div>
       <div>
         <label>密码</label>
-        <input name="password" type="password" required disabled={isPending} />
+        <input 
+          name="password" 
+          type="password" 
+          required 
+          disabled={isPending} 
+        />
       </div>
       {state?.error && <p>{state.error}</p>}
       <button type="submit" disabled={isPending}>
