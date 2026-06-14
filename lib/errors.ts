@@ -1,4 +1,11 @@
 // lib/errors.ts
+
+// 定义可复用的错误消息片段
+// 未来如果有其他需要复用的用户侧模糊错误消息可以加在这里
+const FuzzyErrorMessages = {
+  LOGIN_FAILED: "邮箱或密码错误",
+} as const;
+
 export const ErrorCode = {
   // 通用
   MISSING_FIELDS: "MISSING_FIELDS",
@@ -38,8 +45,8 @@ export const ErrorMessage: Record<ErrorCode, string> = {
   [ErrorCode.WEAK_PASSWORD]: "密码长度至少为 6 位",
   [ErrorCode.EMAIL_ALREADY_EXISTS]: "邮箱已被注册",
 
-  [ErrorCode.USER_NOT_FOUND]: "用户不存在",
-  [ErrorCode.INVALID_PASSWORD]: "邮箱或密码错误",
+  [ErrorCode.USER_NOT_FOUND]: FuzzyErrorMessages.LOGIN_FAILED,
+  [ErrorCode.INVALID_PASSWORD]: FuzzyErrorMessages.LOGIN_FAILED,
   [ErrorCode.EMAIL_NOT_VERIFIED]: "邮箱未验证，请先验证邮箱",
   [ErrorCode.THIRD_PARTY_ONLY]: "该账号使用第三方登录",
 
