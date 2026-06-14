@@ -6,7 +6,10 @@ import bcrypt from "bcrypt";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt",
+    maxAge: parseInt(process.env.SESSION_MAX_AGE || "604800"), // 单位:s, 默认7天
+  },
   pages: {
     signIn: "/auth/login",
   },
