@@ -4,15 +4,15 @@ on:
   push:
     branches: ["**"]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'scripts/**'
+      - "**.md"
+      - "docs/**"
+      - "scripts/**"
   pull_request:
     branches: [main]
     paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'scripts/**'
+      - "**.md"
+      - "docs/**"
+      - "scripts/**"
 
 jobs:
   lint-and-test:
@@ -40,7 +40,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
@@ -82,3 +82,6 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      - name: Check formatting
+        run: pnpm run format:check

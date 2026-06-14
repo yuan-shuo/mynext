@@ -1,19 +1,22 @@
-import nodemailer from "nodemailer"
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT),
   secure: process.env.SMTP_SECURE === "true",
-  auth: process.env.SMTP_USER && process.env.SMTP_PASS ? {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  } : undefined,
-})
+  auth:
+    process.env.SMTP_USER && process.env.SMTP_PASS
+      ? {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        }
+      : undefined,
+});
 
 export async function sendVerificationEmail(email: string, token: string) {
-  const baseUrl = process.env.AUTH_URL || "http://localhost:3000"
-  const verificationUrl = `${baseUrl}/api/auth/verify-request?token=${token}&email=${encodeURIComponent(email)}`
-  
+  const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+  const verificationUrl = `${baseUrl}/api/auth/verify-request?token=${token}&email=${encodeURIComponent(email)}`;
+
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || "noreply@localhost",
     to: email,
@@ -25,13 +28,13 @@ export async function sendVerificationEmail(email: string, token: string) {
       <p>链接 24 小时内有效。</p>
       <p>如果你没有注册，请忽略这封邮件。</p>
     `,
-  })
+  });
 }
 
 export async function sendResetPasswordEmail(email: string, token: string) {
-  const baseUrl = process.env.AUTH_URL || "http://localhost:3000"
-  const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`
-  
+  const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+  const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
+
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || "noreply@localhost",
     to: email,
@@ -43,13 +46,17 @@ export async function sendResetPasswordEmail(email: string, token: string) {
       <p>链接 1 小时内有效。</p>
       <p>如果你没有请求重置密码，请忽略这封邮件。</p>
     `,
-  })
+  });
 }
 
-export async function sendEmailChangeLink(email: string, token: string, userId: string) {
-  const baseUrl = process.env.AUTH_URL || "http://localhost:3000"
-  const confirmUrl = `${baseUrl}/api/auth/change-email?token=${token}&userId=${userId}`
-  
+export async function sendEmailChangeLink(
+  email: string,
+  token: string,
+  userId: string
+) {
+  const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
+  const confirmUrl = `${baseUrl}/api/auth/change-email?token=${token}&userId=${userId}`;
+
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || "noreply@localhost",
     to: email,
@@ -61,5 +68,5 @@ export async function sendEmailChangeLink(email: string, token: string, userId: 
       <p>链接 1 小时内有效。</p>
       <p>如果不是你本人操作，请忽略这封邮件。</p>
     `,
-  })
+  });
 }

@@ -1,56 +1,61 @@
-"use client"
+"use client";
 
-import { login, resendVerificationEmail } from "@/app/actions/auth"
-import { useActionState, useEffect, useState, useRef } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
-import { ErrorCode, ErrorMessage } from "@/lib/errors"
+import { login, resendVerificationEmail } from "@/app/actions/auth";
+import { useActionState, useEffect, useState, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { ErrorCode, ErrorMessage } from "@/lib/errors";
 
 export default function LoginForm() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const [state, formAction, isPending] = useActionState(login, null)
-  const [resendState, resendAction, isResending] = useActionState(resendVerificationEmail, null)
-  const [showResendForm, setShowResendForm] = useState(false)
-  const [currentEmail, setCurrentEmail] = useState("")
-  const emailInputRef = useRef<HTMLInputElement>(null)
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [state, formAction, isPending] = useActionState(login, null);
+  const [resendState, resendAction, isResending] = useActionState(
+    resendVerificationEmail,
+    null
+  );
+  const [showResendForm, setShowResendForm] = useState(false);
+  const [currentEmail, setCurrentEmail] = useState("");
+  const emailInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (state?.success) {
-      router.push("/")
+      router.push("/");
     }
-  }, [state, router])
+  }, [state, router]);
 
-  const verified = searchParams.get("verified")
-  const errorCode = searchParams.get("errorCode") as keyof typeof ErrorMessage | null
+  const verified = searchParams.get("verified");
+  const errorCode = searchParams.get("errorCode") as
+    | keyof typeof ErrorMessage
+    | null;
 
   useEffect(() => {
     if (state?.errorCode === ErrorCode.EMAIL_NOT_VERIFIED) {
-      const emailValue = emailInputRef.current?.value || ""
-      setCurrentEmail(emailValue)
-      setShowResendForm(true)
+      const emailValue = emailInputRef.current?.value || "";
+      setCurrentEmail(emailValue);
+      setShowResendForm(true);
     }
-  }, [state?.errorCode])
+  }, [state?.errorCode]);
 
   const getErrorMessage = (code: keyof typeof ErrorMessage) => {
-    return ErrorMessage[code] || "发生错误"
-  }
+    return ErrorMessage[code] || "发生错误";
+  };
 
   return (
     <div>
       <h1>登录</h1>
-      
+
       {verified && <p>邮箱验证成功！请登录</p>}
       {errorCode && <p>{getErrorMessage(errorCode)}</p>}
-      
+
       <form action={formAction}>
         <div>
           <label>邮箱</label>
-          <input 
+          <input
             ref={emailInputRef}
-            type="email" 
-            name="email" 
-            required 
+            type="email"
+            name="email"
+            required
             defaultValue={currentEmail}
             onChange={(e) => setCurrentEmail(e.target.value)}
           />
@@ -84,7 +89,7 @@ export default function LoginForm() {
           </form>
         </div>
       )}
-      
+
       <p>
         还没有账号？ <Link href="/auth/register">立即注册</Link>
       </p>
@@ -92,5 +97,5 @@ export default function LoginForm() {
         <Link href="/auth/forgot-password">忘记密码？</Link>
       </p>
     </div>
-  )
+  );
 }
