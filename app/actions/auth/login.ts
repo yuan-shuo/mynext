@@ -31,8 +31,8 @@ export async function login(
 
   if (!user) {
     return {
-      errorCode: ErrorCode.USER_NOT_FOUND,
-      error: ErrorMessage[ErrorCode.USER_NOT_FOUND],
+      errorCode: ErrorCode.LOGIN_FAILED,
+      error: ErrorMessage[ErrorCode.LOGIN_FAILED],
     };
   }
 
@@ -53,8 +53,8 @@ export async function login(
   const isValid = await bcrypt.compare(password, user.password);
   if (!isValid) {
     return {
-      errorCode: ErrorCode.INVALID_PASSWORD,
-      error: ErrorMessage[ErrorCode.INVALID_PASSWORD],
+      errorCode: ErrorCode.LOGIN_FAILED,
+      error: ErrorMessage[ErrorCode.LOGIN_FAILED],
     };
   }
 
@@ -67,8 +67,8 @@ export async function login(
     return { success: true };
   } catch {
     return {
-      errorCode: ErrorCode.INVALID_PASSWORD,
-      error: ErrorMessage[ErrorCode.INVALID_PASSWORD],
+      errorCode: ErrorCode.LOGIN_FAILED,
+      error: ErrorMessage[ErrorCode.LOGIN_FAILED],
     };
   }
 }

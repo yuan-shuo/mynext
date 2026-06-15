@@ -54,8 +54,8 @@ export async function changePassword(
 
   if (!user || !user.password) {
     return {
-      errorCode: ErrorCode.USER_NOT_FOUND,
-      error: ErrorMessage[ErrorCode.USER_NOT_FOUND],
+      errorCode: ErrorCode.LOGIN_FAILED,
+      error: ErrorMessage[ErrorCode.LOGIN_FAILED],
     };
   }
 
