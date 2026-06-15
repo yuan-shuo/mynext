@@ -9,6 +9,8 @@ export type LoginState = {
   errorCode?: string;
   error?: string;
   success?: boolean;
+  needsEmailVerification?: boolean;
+  email?: string;
 } | null;
 
 export async function login(
@@ -22,6 +24,7 @@ export async function login(
     return {
       errorCode: ErrorCode.MISSING_FIELDS,
       error: ErrorMessage[ErrorCode.MISSING_FIELDS],
+      email: email,
     };
   }
 
@@ -33,6 +36,7 @@ export async function login(
     return {
       errorCode: ErrorCode.LOGIN_FAILED,
       error: ErrorMessage[ErrorCode.LOGIN_FAILED],
+      email: email,
     };
   }
 
@@ -40,6 +44,7 @@ export async function login(
     return {
       errorCode: ErrorCode.THIRD_PARTY_ONLY,
       error: ErrorMessage[ErrorCode.THIRD_PARTY_ONLY],
+      email: email,
     };
   }
 
@@ -47,6 +52,8 @@ export async function login(
     return {
       errorCode: ErrorCode.EMAIL_NOT_VERIFIED,
       error: ErrorMessage[ErrorCode.EMAIL_NOT_VERIFIED],
+      needsEmailVerification: true,
+      email: email,
     };
   }
 
@@ -55,6 +62,7 @@ export async function login(
     return {
       errorCode: ErrorCode.LOGIN_FAILED,
       error: ErrorMessage[ErrorCode.LOGIN_FAILED],
+      email: email,
     };
   }
 
@@ -69,6 +77,7 @@ export async function login(
     return {
       errorCode: ErrorCode.LOGIN_FAILED,
       error: ErrorMessage[ErrorCode.LOGIN_FAILED],
+      email: email,
     };
   }
 }

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { sendChangeEmailLink } from "@/app/actions/auth";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ErrorMessage } from "@/lib/errors";
 
 export default function ChangeEmailForm() {
   const searchParams = useSearchParams();
@@ -14,9 +13,7 @@ export default function ChangeEmailForm() {
   const [loading, setLoading] = useState(false);
 
   const urlSuccess = searchParams.get("success");
-  const urlErrorCode = searchParams.get("errorCode") as
-    | keyof typeof ErrorMessage
-    | null;
+  const urlError = searchParams.get("error");
 
   const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
@@ -35,10 +32,6 @@ export default function ChangeEmailForm() {
     setLoading(false);
   };
 
-  const getErrorMessage = (code: keyof typeof ErrorMessage) => {
-    return ErrorMessage[code] || "发生错误";
-  };
-
   if (urlSuccess) {
     return (
       <div>
@@ -51,11 +44,11 @@ export default function ChangeEmailForm() {
     );
   }
 
-  if (urlErrorCode) {
+  if (urlError) {
     return (
       <div>
         <h1>换绑邮箱</h1>
-        <p>{getErrorMessage(urlErrorCode)}</p>
+        <p>{urlError}</p>
         <p>
           <Link href="/auth/change-email">重新换绑</Link>
         </p>
