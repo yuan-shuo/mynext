@@ -61,7 +61,7 @@ export default function ChangeEmailForm() {
           <label>新邮箱</label>
           <input name="newEmail" type="email" required disabled={isPending} />
         </div>
-        {state?.error && <p>{state?.error}</p>}
+        {state?.error && <p>{state.error}</p>}
         <button type="submit" disabled={isPending}>
           {isPending ? "发送中..." : "发送验证链接"}
         </button>
