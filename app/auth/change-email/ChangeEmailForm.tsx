@@ -1,36 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 import { sendChangeEmailLink } from "@/app/actions/auth";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 export default function ChangeEmailForm() {
   const searchParams = useSearchParams();
-  const [newEmail, setNewEmail] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
-
   const urlSuccess = searchParams.get("success");
   const urlError = searchParams.get("error");
 
-  const handleSubmit: React.SubmitEventHandler<HTMLFormElement> = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const formData = new FormData();
-    formData.append("newEmail", newEmail);
-    const result = await sendChangeEmailLink(null, formData);
-
-    if (result?.error) {
-      setError(result.error);
-    } else if (result?.success) {
-      setSuccess(true);
-    }
-    setLoading(false);
-  };
+  const [state, formAction, isPending] = useActionState(
+    sendChangeEmailLink,
+    null
+  );
 
   if (urlSuccess) {
     return (
@@ -56,7 +39,7 @@ export default function ChangeEmailForm() {
     );
   }
 
-  if (success) {
+  if (state?.success) {
     return (
       <div>
         <h1>换绑邮箱</h1>
@@ -73,19 +56,14 @@ export default function ChangeEmailForm() {
     <div>
       <h1>换绑邮箱</h1>
 
-      <form onSubmit={handleSubmit}>
+      <form action={formAction}>
         <div>
           <label>新邮箱</label>
-          <input
-            type="email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            required
-          />
+          <input name="newEmail" type="email" required disabled={isPending} />
         </div>
-        {error && <p>{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? "发送中..." : "发送验证链接"}
+        {state?.error && <p>{state?.error}</p>}
+        <button type="submit" disabled={isPending}>
+          {isPending ? "发送中..." : "发送验证链接"}
         </button>
       </form>
     </div>
