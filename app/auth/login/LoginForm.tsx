@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { BackHomeButton } from "@/components/ui/back-button";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -121,6 +122,7 @@ export default function LoginForm() {
               </Link>
             </p>
           </div>
+          <BackHomeButton></BackHomeButton>
         </CardContent>
       </Card>
     </div>
