@@ -5,6 +5,13 @@ import { useActionState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
+// UI
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -23,55 +30,99 @@ export default function LoginForm() {
   const verified = searchParams.get("verified");
 
   return (
-    <div>
-      <h1>登录</h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle className="text-center">登录</CardTitle>
+        </CardHeader>
 
-      {verified && <p>邮箱验证成功！请登录</p>}
+        <CardContent className="space-y-4">
+          {verified && (
+            <Alert className="border-green-500 bg-green-50 text-green-700">
+              <AlertDescription>邮箱验证成功！请登录</AlertDescription>
+            </Alert>
+          )}
 
-      {state?.error && !state?.needsEmailVerification && <p>{state.error}</p>}
+          {state?.error && !state?.needsEmailVerification && (
+            <Alert variant="destructive">
+              <AlertDescription>{state.error}</AlertDescription>
+            </Alert>
+          )}
 
-      <form action={formAction}>
-        <div>
-          <label>邮箱</label>
-          <input
-            type="email"
-            name="email"
-            required
-            defaultValue={state?.email || ""}
-          />
-        </div>
-        <div>
-          <label>密码</label>
-          <input type="password" name="password" required />
-        </div>
-        <button type="submit" disabled={isPending}>
-          {isPending ? "登录中..." : "登录"}
-        </button>
-      </form>
-
-      {state?.needsEmailVerification && state?.email && (
-        <div>
-          <h3>重新发送验证邮件</h3>
-          <form action={resendAction}>
-            <input type="hidden" name="email" value={state.email} />
-            <p>我们将向 {state.email} 重新发送验证邮件。</p>
-            {resendState?.error && <p>{resendState.error}</p>}
-            {resendState?.success && <p>验证邮件已重新发送！请查收</p>}
-            <div>
-              <button type="submit" disabled={isResending}>
-                {isResending ? "发送中..." : "确认发送"}
-              </button>
+          <form action={formAction} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">邮箱</Label>
+              <Input
+                id="email"
+                type="email"
+                name="email"
+                required
+                defaultValue={state?.email || ""}
+              />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">密码</Label>
+              <Input id="password" type="password" name="password" required />
+            </div>
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "登录中..." : "登录"}
+            </Button>
           </form>
-        </div>
-      )}
 
-      <p>
-        还没有账号？ <Link href="/auth/register">立即注册</Link>
-      </p>
-      <p>
-        <Link href="/auth/forgot-password">忘记密码？</Link>
-      </p>
+          {state?.needsEmailVerification && state?.email && (
+            <div className="space-y-3">
+              <h3 className="font-medium text-center">重新发送验证邮件</h3>
+              <form action={resendAction} className="space-y-3">
+                <input type="hidden" name="email" value={state.email} />
+                <p className="text-sm text-gray-600 text-center">
+                  我们将向 {state.email} 重新发送验证邮件。
+                </p>
+                {resendState?.error && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{resendState.error}</AlertDescription>
+                  </Alert>
+                )}
+                {resendState?.success && (
+                  <Alert className="border-green-500 bg-green-50 text-green-700">
+                    <AlertDescription>
+                      验证邮件已重新发送！请查收
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <div className="space-y-2 text-center text-sm text-gray-600">
+                  <Button
+                    type="submit"
+                    variant="outline"
+                    disabled={isResending}
+                  >
+                    {isResending ? "发送中..." : "确认发送"}
+                  </Button>
+                </div>
+              </form>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <p>
+              还没有账号？{" "}
+              <Link
+                href="/auth/register"
+                className="hover:underline text-blue-600"
+              >
+                立即注册
+              </Link>
+            </p>
+            <p>
+              <Link
+                href="/auth/forgot-password"
+                className="hover:underline text-blue-600"
+              >
+                忘记密码？
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
