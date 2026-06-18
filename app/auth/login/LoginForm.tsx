@@ -102,7 +102,7 @@ export default function LoginForm() {
             </div>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-2 text-center">
             <p>
               还没有账号？{" "}
               <Link
