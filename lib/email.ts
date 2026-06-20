@@ -1,5 +1,7 @@
 import nodemailer from "nodemailer";
 import redis from "@/lib/redis";
+import { randomUUID } from "crypto";
+import { cleanAndSetNewToken } from "@/lib/verification-token";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -34,12 +36,16 @@ async function rateLimit(key: string, exp: number): Promise<RateLimitResp> {
   };
 }
 
-export async function sendVerificationEmail(email: string, token: string) {
+export async function sendVerificationEmail(email: string) {
   // 发送邮件限流
   const rl = await rateLimit(`ratelimit:sendVerificationEmail:${email}`, 60);
   if (!rl.allow) {
     throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
   }
+
+  // 生成验证 token
+  const token = randomUUID();
+  await cleanAndSetNewToken(token, email);
 
   const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
   const verificationUrl = `${baseUrl}/api/auth/verify-request?token=${token}&email=${encodeURIComponent(email)}`;
@@ -58,12 +64,16 @@ export async function sendVerificationEmail(email: string, token: string) {
   });
 }
 
-export async function sendResetPasswordEmail(email: string, token: string) {
+export async function sendResetPasswordEmail(email: string) {
   // 发送邮件限流
   const rl = await rateLimit(`ratelimit:sendResetPasswordEmail:${email}`, 60);
   if (!rl.allow) {
     throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
   }
+
+  // 生成验证 token
+  const token = randomUUID();
+  await cleanAndSetNewToken(token, email);
 
   const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
   const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
@@ -82,16 +92,16 @@ export async function sendResetPasswordEmail(email: string, token: string) {
   });
 }
 
-export async function sendEmailChangeLink(
-  email: string,
-  token: string,
-  userId: string
-) {
+export async function sendEmailChangeLink(email: string, userId: string) {
   // 发送邮件限流
   const rl = await rateLimit(`ratelimit:sendEmailChangeLink:${email}`, 60);
   if (!rl.allow) {
     throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
   }
+
+  // 生成验证 token
+  const token = randomUUID();
+  await cleanAndSetNewToken(token, email);
 
   const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
   const confirmUrl = `${baseUrl}/api/auth/change-email?token=${token}&userId=${userId}`;

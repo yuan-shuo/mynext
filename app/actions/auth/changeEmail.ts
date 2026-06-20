@@ -3,8 +3,8 @@
 import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { sendEmailChangeLink } from "@/lib/email";
-import { randomUUID } from "crypto";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { getTokenEmail, cleanToken } from "@/lib/verification-token";
 
 export type ChangeEmailState = {
   errorCode?: string;
@@ -45,51 +45,80 @@ export async function sendChangeEmailLink(
     where: { email: newEmail },
   });
 
-  if (existingUser && existingUser.id !== session.user.id) {
+  if (existingUser) {
+    if (existingUser.id === session.user.id) {
+      return {
+        errorCode: ErrorCode.EMAIL_SAME,
+        error: ErrorMessage[ErrorCode.EMAIL_SAME],
+      };
+    }
     return {
       errorCode: ErrorCode.EMAIL_ALREADY_EXISTS,
       error: ErrorMessage[ErrorCode.EMAIL_ALREADY_EXISTS],
     };
   }
 
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: newEmail },
-  });
+  // await prisma.verificationToken.deleteMany({
+  //   where: { identifier: newEmail },
+  // });
 
-  const token = randomUUID();
-  await prisma.verificationToken.create({
-    data: {
-      identifier: newEmail,
-      token,
-      expires: new Date(Date.now() + 60 * 60 * 1000),
-    },
-  });
+  // const token = randomUUID();
+  // await prisma.verificationToken.create({
+  //   data: {
+  //     identifier: newEmail,
+  //     token,
+  //     expires: new Date(Date.now() + 60 * 60 * 1000),
+  //   },
+  // });
 
-  await sendEmailChangeLink(newEmail, token, session.user.id);
+  // // 生成验证 token
+  // const token = randomUUID();
+
+  // await cleanAndSetNewToken(token, newEmail);
+
+  // 发送验证邮件
+  try {
+    await sendEmailChangeLink(newEmail, session.user.id);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "未知错误";
+    return { success: false, error: message };
+  }
+
+  // await sendEmailChangeLink(newEmail, token, session.user.id);
 
   return { success: true };
 }
 
 export async function confirmEmailChange(token: string, userId: string) {
-  const verificationToken = await prisma.verificationToken.findFirst({
-    where: { token },
-  });
-
-  if (!verificationToken) {
+  // 获取token对应邮箱
+  const redisEmail = await getTokenEmail(token);
+  // 若此数据在 redis 中不存在，返回错误
+  if (!redisEmail) {
     return {
       errorCode: ErrorCode.LINK_INVALID,
       error: ErrorMessage[ErrorCode.LINK_INVALID],
     };
   }
 
-  if (verificationToken.expires < new Date()) {
-    return {
-      errorCode: ErrorCode.LINK_EXPIRED,
-      error: ErrorMessage[ErrorCode.LINK_EXPIRED],
-    };
-  }
+  // const verificationToken = await prisma.verificationToken.findFirst({
+  //   where: { token },
+  // });
 
-  const newEmail = verificationToken.identifier;
+  // if (!verificationToken) {
+  //   return {
+  //     errorCode: ErrorCode.LINK_INVALID,
+  //     error: ErrorMessage[ErrorCode.LINK_INVALID],
+  //   };
+  // }
+
+  // if (verificationToken.expires < new Date()) {
+  //   return {
+  //     errorCode: ErrorCode.LINK_EXPIRED,
+  //     error: ErrorMessage[ErrorCode.LINK_EXPIRED],
+  //   };
+  // }
+
+  const newEmail = redisEmail;
 
   const existingUser = await prisma.user.findUnique({
     where: { email: newEmail },
@@ -110,14 +139,7 @@ export async function confirmEmailChange(token: string, userId: string) {
     },
   });
 
-  await prisma.verificationToken.delete({
-    where: {
-      identifier_token: {
-        identifier: newEmail,
-        token: token,
-      },
-    },
-  });
+  await cleanToken(newEmail);
 
   return { success: true };
 }

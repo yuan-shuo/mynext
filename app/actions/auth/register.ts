@@ -3,9 +3,7 @@
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { sendVerificationEmail } from "@/lib/email";
-import { randomUUID } from "crypto";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
-import { cleanAndSetNewToken } from "@/lib/verification-token";
 
 export type RegisterState = {
   errorCode?: string;
@@ -73,18 +71,22 @@ export async function register(
     },
   });
 
-  // 生成验证 token
-  const token = randomUUID();
-
-  await cleanAndSetNewToken(token, email);
+  // // 生成验证 token
+  // const token = randomUUID();
+  // await cleanAndSetNewToken(token, email);
 
   // 发送验证邮件
   try {
-    await sendVerificationEmail(email, token);
+    await sendVerificationEmail(email);
   } catch (error) {
     const message = error instanceof Error ? error.message : "未知错误";
     return { success: false, error: message };
   }
+  // try {
+  // } catch (error) {
+  //   const message = error instanceof Error ? error.message : "未知错误";
+  //   return { success: false, error: message };
+  // }
 
   return { success: true, email };
 }

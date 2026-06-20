@@ -20,6 +20,7 @@ export const ErrorCode = {
 
   // 重发邮件相关
   EMAIL_ALREADY_VERIFIED: "EMAIL_ALREADY_VERIFIED",
+  EMAIL_SAME: "EMAIL_SAME",
 
   // 用户未认证
   UNAUTHORIZED: "UNAUTHORIZED",
@@ -27,6 +28,9 @@ export const ErrorCode = {
   // 修改密码
   PASSWORD_SAME_AS_OLD: "PASSWORD_SAME_AS_OLD",
   OLD_PASSWORD_INCORRECT: "OLD_PASSWORD_INCORRECT",
+
+  // 限流
+  TOO_MANY_REQUEST: "TOO_MANY_REQUEST",
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -46,9 +50,11 @@ export const ErrorMessage: Record<ErrorCode, string> = {
   [ErrorCode.LINK_EXPIRED]: "验证链接已过期，请重新注册",
 
   [ErrorCode.EMAIL_ALREADY_VERIFIED]: "该邮箱已验证，请直接登录",
+  [ErrorCode.EMAIL_SAME]: "新邮箱与当前邮箱相同",
 
   [ErrorCode.UNAUTHORIZED]: "请先登录",
 
   [ErrorCode.PASSWORD_SAME_AS_OLD]: "新密码不能与旧密码相同",
   [ErrorCode.OLD_PASSWORD_INCORRECT]: "当前密码错误",
+  [ErrorCode.TOO_MANY_REQUEST]: "请求过于频繁，请稍后再试",
 };
