@@ -2,7 +2,6 @@
 
 import { signIn } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import bcrypt from "bcrypt";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
 
 export type LoginState = {
@@ -53,15 +52,6 @@ export async function login(
       errorCode: ErrorCode.EMAIL_NOT_VERIFIED,
       error: ErrorMessage[ErrorCode.EMAIL_NOT_VERIFIED],
       needsEmailVerification: true,
-      email: email,
-    };
-  }
-
-  const isValid = await bcrypt.compare(password, user.password);
-  if (!isValid) {
-    return {
-      errorCode: ErrorCode.LOGIN_FAILED,
-      error: ErrorMessage[ErrorCode.LOGIN_FAILED],
       email: email,
     };
   }
