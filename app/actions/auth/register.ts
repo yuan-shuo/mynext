@@ -79,7 +79,12 @@ export async function register(
   await cleanAndSetNewToken(token, email);
 
   // 发送验证邮件
-  await sendVerificationEmail(email, token);
+  try {
+    await sendVerificationEmail(email, token);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "未知错误";
+    return { success: false, error: message };
+  }
 
   return { success: true, email };
 }

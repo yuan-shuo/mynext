@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import redis from "@/lib/redis";
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
@@ -13,7 +14,33 @@ const transporter = nodemailer.createTransport({
       : undefined,
 });
 
+interface RateLimitResp {
+  allow: boolean;
+  ttl: number;
+}
+
+async function rateLimit(key: string, exp: number): Promise<RateLimitResp> {
+  const ttl = await redis.ttl(key);
+  if (ttl > 0) {
+    return {
+      allow: false,
+      ttl: ttl,
+    };
+  }
+  await redis.setex(key, exp, 0);
+  return {
+    allow: true,
+    ttl: 0,
+  };
+}
+
 export async function sendVerificationEmail(email: string, token: string) {
+  // 发送邮件限流
+  const rl = await rateLimit(`ratelimit:sendVerificationEmail:${email}`, 60);
+  if (!rl.allow) {
+    throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
+  }
+
   const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
   const verificationUrl = `${baseUrl}/api/auth/verify-request?token=${token}&email=${encodeURIComponent(email)}`;
 
@@ -32,6 +59,12 @@ export async function sendVerificationEmail(email: string, token: string) {
 }
 
 export async function sendResetPasswordEmail(email: string, token: string) {
+  // 发送邮件限流
+  const rl = await rateLimit(`ratelimit:sendResetPasswordEmail:${email}`, 60);
+  if (!rl.allow) {
+    throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
+  }
+
   const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
   const resetUrl = `${baseUrl}/auth/reset-password?token=${token}&email=${encodeURIComponent(email)}`;
 
@@ -54,6 +87,12 @@ export async function sendEmailChangeLink(
   token: string,
   userId: string
 ) {
+  // 发送邮件限流
+  const rl = await rateLimit(`ratelimit:sendEmailChangeLink:${email}`, 60);
+  if (!rl.allow) {
+    throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
+  }
+
   const baseUrl = process.env.AUTH_URL || "http://localhost:3000";
   const confirmUrl = `${baseUrl}/api/auth/change-email?token=${token}&userId=${userId}`;
 

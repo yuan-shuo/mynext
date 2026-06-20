@@ -58,26 +58,12 @@ export async function resendVerificationEmail(
   await cleanAndSetNewToken(token, email);
 
   // 发送验证邮件
-  await sendVerificationEmail(email, token);
-
-  // // 删除旧的验证 token
-  // await prisma.verificationToken.deleteMany({
-  //   where: { identifier: email },
-  // });
-
-  // // 生成新的验证 token
-  // const token = randomUUID();
-
-  // await prisma.verificationToken.create({
-  //   data: {
-  //     identifier: email,
-  //     token,
-  //     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-  //   },
-  // });
-
-  // // 发送验证邮件
-  // await sendVerificationEmail(email, token);
+  try {
+    await sendVerificationEmail(email, token);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "未知错误";
+    return { success: false, error: message };
+  }
 
   return { success: true };
 }
