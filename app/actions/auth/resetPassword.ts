@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { getTokenEmail, cleanToken } from "@/lib/verification-token";
 
 export type ResetPasswordState = {
   errorCode?: string;
@@ -33,21 +34,11 @@ export async function resetPassword(
   }
 
   // 验证 token
-  const verificationToken = await prisma.verificationToken.findFirst({
-    where: { token },
-  });
-
-  if (!verificationToken || verificationToken.identifier !== email) {
+  const tokenEmail = await getTokenEmail(token);
+  if (!tokenEmail || tokenEmail !== email) {
     return {
       errorCode: ErrorCode.LINK_INVALID,
       error: ErrorMessage[ErrorCode.LINK_INVALID],
-    };
-  }
-
-  if (verificationToken.expires < new Date()) {
-    return {
-      errorCode: ErrorCode.LINK_EXPIRED,
-      error: ErrorMessage[ErrorCode.LINK_EXPIRED],
     };
   }
 
@@ -59,14 +50,7 @@ export async function resetPassword(
   });
 
   // 删除已使用的 token
-  await prisma.verificationToken.delete({
-    where: {
-      identifier_token: {
-        identifier: email,
-        token: token,
-      },
-    },
-  });
+  await cleanToken(email);
 
   return { success: true };
 }

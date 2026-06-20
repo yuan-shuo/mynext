@@ -1,8 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { sendResetPasswordEmail } from "@/lib/email";
-import { randomUUID } from "crypto";
+import { sendResetPasswordEmail, sendVerificationEmail } from "@/lib/email";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
 
 export type ForgotPasswordState = {
@@ -41,23 +40,25 @@ export async function forgotPassword(
     return { success: true };
   }
 
-  // 删除旧的 token
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: email },
-  });
-
-  // 生成新 token
-  const token = randomUUID();
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token,
-      expires: new Date(Date.now() + 60 * 60 * 1000), // 1小时有效
-    },
-  });
+  // 如果用户还没验证邮箱，现发送邮箱验证邮件
+  if (!user.emailVerified) {
+    // 发送验证邮件
+    try {
+      await sendVerificationEmail(email);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "未知错误";
+      return { success: false, error: message };
+    }
+    return { success: true };
+  }
 
   // 发送重置邮件
-  await sendResetPasswordEmail(email, token);
+  try {
+    await sendResetPasswordEmail(email);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "未知错误";
+    return { success: false, error: message };
+  }
 
   return { success: true };
 }
