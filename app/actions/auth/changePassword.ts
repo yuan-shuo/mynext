@@ -15,6 +15,15 @@ export async function changePassword(
   prevState: ChangePasswordState,
   formData: FormData
 ): Promise<ChangePasswordState> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      errorCode: ErrorCode.UNAUTHORIZED,
+      error: ErrorMessage[ErrorCode.UNAUTHORIZED],
+    };
+  }
+
+  // ** 表单数据提取
   const oldPassword = formData.get("oldPassword") as string;
   const newPassword = formData.get("newPassword") as string;
 
@@ -37,14 +46,6 @@ export async function changePassword(
     return {
       errorCode: ErrorCode.PASSWORD_SAME_AS_OLD,
       error: ErrorMessage[ErrorCode.PASSWORD_SAME_AS_OLD],
-    };
-  }
-
-  const session = await auth();
-  if (!session?.user?.id) {
-    return {
-      errorCode: ErrorCode.UNAUTHORIZED,
-      error: ErrorMessage[ErrorCode.UNAUTHORIZED],
     };
   }
 

@@ -16,6 +16,15 @@ export async function sendChangeEmailLink(
   prevState: ChangeEmailState,
   formData: FormData
 ): Promise<ChangeEmailState> {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      errorCode: ErrorCode.UNAUTHORIZED,
+      error: ErrorMessage[ErrorCode.UNAUTHORIZED],
+    };
+  }
+
+  // ** 表单数据提取
   const newEmail = formData.get("newEmail") as string;
 
   if (!newEmail) {
@@ -29,14 +38,6 @@ export async function sendChangeEmailLink(
     return {
       errorCode: ErrorCode.INVALID_EMAIL,
       error: ErrorMessage[ErrorCode.INVALID_EMAIL],
-    };
-  }
-
-  const session = await auth();
-  if (!session?.user?.id) {
-    return {
-      errorCode: ErrorCode.UNAUTHORIZED,
-      error: ErrorMessage[ErrorCode.UNAUTHORIZED],
     };
   }
 
