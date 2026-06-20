@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
 import { randomUUID } from "crypto";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { cleanAndSetNewToken } from "@/lib/verification-token";
 
 export type ResendState = {
   errorCode?: string;
@@ -51,24 +52,32 @@ export async function resendVerificationEmail(
     };
   }
 
-  // 删除旧的验证 token
-  await prisma.verificationToken.deleteMany({
-    where: { identifier: email },
-  });
-
-  // 生成新的验证 token
+  // 生成验证 token
   const token = randomUUID();
 
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    },
-  });
+  await cleanAndSetNewToken(token, email);
 
   // 发送验证邮件
   await sendVerificationEmail(email, token);
+
+  // // 删除旧的验证 token
+  // await prisma.verificationToken.deleteMany({
+  //   where: { identifier: email },
+  // });
+
+  // // 生成新的验证 token
+  // const token = randomUUID();
+
+  // await prisma.verificationToken.create({
+  //   data: {
+  //     identifier: email,
+  //     token,
+  //     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  //   },
+  // });
+
+  // // 发送验证邮件
+  // await sendVerificationEmail(email, token);
 
   return { success: true };
 }

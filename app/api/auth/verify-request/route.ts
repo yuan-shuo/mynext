@@ -2,15 +2,15 @@
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { ErrorCode } from "@/lib/errors";
-import redis from "@/lib/redis";
+// import redis from "@/lib/redis";
+import { cleanToken, getTokenEmail } from "@/lib/verification-token";
 
 const redirectPath: string = `/auth/login?errorCode=${ErrorCode.LINK_INVALID}`;
 
 // 辅助复用函数
-async function cleanTokenAndRedirect(token: string, email: string) {
+async function cleanTokenAndRedirect(email: string) {
   // 任务正常完成，直接清理+重定向
-  await redis.del(`verification:${token}`);
-  await redis.del(`verification:email:${email}`);
+  await cleanToken(email);
   redirect("/auth/login?verified=true");
 }
 
@@ -20,11 +20,11 @@ export async function GET(request: Request) {
   const email = searchParams.get("email");
 
   if (!token || !email) {
-    redirect(`/auth/login?errorCode=${ErrorCode.LINK_INVALID}`);
+    redirect(redirectPath);
   }
 
   // 获取token对应邮箱
-  const redisEmail = await redis.get(`verification:${token}`);
+  const redisEmail = await getTokenEmail(token);
   // 若此数据在 redis 中不存在，返回错误
   if (!redisEmail) {
     redirect(redirectPath);
@@ -46,36 +46,13 @@ export async function GET(request: Request) {
   // 检查邮箱是否已验证
   if (user.emailVerified) {
     // 如果已经验证过了，直接清理 Redis token
-    await cleanTokenAndRedirect(token, email);
+    await cleanTokenAndRedirect(email);
   }
-
-  // // 用 findFirst 查找（因为只有 token）
-  // const verificationToken = await prisma.verificationToken.findFirst({
-  //   where: { token },
-  // });
-
-  // if (!verificationToken || verificationToken.identifier !== email) {
-  //   redirect(`/auth/login?errorCode=${ErrorCode.LINK_INVALID}`);
-  // }
-
-  // if (verificationToken.expires < new Date()) {
-  //   redirect(`/auth/login?errorCode=${ErrorCode.LINK_EXPIRED}`);
-  // }
 
   await prisma.user.update({
     where: { email },
     data: { emailVerified: new Date() },
   });
 
-  await cleanTokenAndRedirect(token, email);
-
-  // // 删除 token（用复合主键）
-  // await prisma.verificationToken.delete({
-  //   where: {
-  //     identifier_token: {
-  //       identifier: email,
-  //       token: token,
-  //     },
-  //   },
-  // });
+  await cleanTokenAndRedirect(email);
 }
