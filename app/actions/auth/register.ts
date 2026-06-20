@@ -25,7 +25,7 @@ export async function register(
     return {
       errorCode: ErrorCode.MISSING_FIELDS,
       error: ErrorMessage[ErrorCode.MISSING_FIELDS],
-      email,
+      // email,
     };
   }
 
@@ -34,7 +34,7 @@ export async function register(
     return {
       errorCode: ErrorCode.INVALID_EMAIL,
       error: ErrorMessage[ErrorCode.INVALID_EMAIL],
-      email,
+      // email,
     };
   }
 
@@ -43,7 +43,7 @@ export async function register(
     return {
       errorCode: ErrorCode.WEAK_PASSWORD,
       error: ErrorMessage[ErrorCode.WEAK_PASSWORD],
-      email,
+      // email,
     };
   }
 
@@ -56,32 +56,53 @@ export async function register(
     return {
       errorCode: ErrorCode.EMAIL_ALREADY_EXISTS,
       error: ErrorMessage[ErrorCode.EMAIL_ALREADY_EXISTS],
-      email,
+      // email,
     };
   }
 
   // 加密密码
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // 创建用户（未验证）
-  await prisma.user.create({
-    data: {
-      email,
-      password: hashedPassword,
-      emailVerified: null,
-    },
-  });
+  // // 创建用户（未验证）
+  // await prisma.user.create({
+  //   data: {
+  //     email,
+  //     password: hashedPassword,
+  //     emailVerified: null,
+  //   },
+  // });
 
   // 生成验证 token
   const token = randomUUID();
 
-  // 保存到 VerificationToken 表
-  await prisma.verificationToken.create({
-    data: {
-      identifier: email,
-      token,
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-    },
+  // // 保存到 VerificationToken 表
+  // await prisma.verificationToken.create({
+  //   data: {
+  //     identifier: email,
+  //     token,
+  //     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  //   },
+  // });
+
+  // 使用事务确保原子性
+  await prisma.$transaction(async (tx) => {
+    // 创建用户
+    await tx.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        emailVerified: null,
+      },
+    });
+
+    // 创建验证 token
+    await tx.verificationToken.create({
+      data: {
+        identifier: email,
+        token,
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      },
+    });
   });
 
   // 发送验证邮件

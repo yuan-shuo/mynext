@@ -23,7 +23,7 @@ export async function login(
     return {
       errorCode: ErrorCode.MISSING_FIELDS,
       error: ErrorMessage[ErrorCode.MISSING_FIELDS],
-      email: email,
+      // email: email,
     };
   }
 
@@ -35,7 +35,7 @@ export async function login(
     return {
       errorCode: ErrorCode.LOGIN_FAILED,
       error: ErrorMessage[ErrorCode.LOGIN_FAILED],
-      email: email,
+      // email: email,
     };
   }
 
@@ -43,7 +43,7 @@ export async function login(
     return {
       errorCode: ErrorCode.THIRD_PARTY_ONLY,
       error: ErrorMessage[ErrorCode.THIRD_PARTY_ONLY],
-      email: email,
+      // email: email,
     };
   }
 
@@ -67,7 +67,7 @@ export async function login(
     return {
       errorCode: ErrorCode.LOGIN_FAILED,
       error: ErrorMessage[ErrorCode.LOGIN_FAILED],
-      email: email,
+      // email: email,
     };
   }
 }

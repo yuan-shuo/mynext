@@ -1,7 +1,7 @@
 "use client";
 
 import { login, resendVerificationEmail } from "@/app/actions/auth";
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -21,6 +21,9 @@ export default function LoginForm() {
     resendVerificationEmail,
     null
   );
+
+  // 仅用于保留邮箱输入
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     if (state?.success) {
@@ -57,8 +60,11 @@ export default function LoginForm() {
                 id="email"
                 type="email"
                 name="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
                 required
-                defaultValue={state?.email || ""}
               />
             </div>
             <div className="space-y-2">

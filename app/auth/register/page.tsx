@@ -11,6 +11,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+// 提前预处理错误的返回信息
+const PASSWORDS_NOT_MATCH: string = "两次输入的密码不一致";
+
 export default function RegisterPage() {
   const [state, formAction, isPending] = useActionState(register, null);
 
@@ -18,7 +21,8 @@ export default function RegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [clientError, setClientError] = useState<string | null>(null);
 
-  const PASSWORDS_NOT_MATCH: string = "两次输入的密码不一致";
+  // 仅用于保留邮箱输入
+  const [email, setEmail] = useState("");
 
   // 实时验证密码是否一致
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,7 +46,7 @@ export default function RegisterPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
     if (password !== confirmPassword) {
       e.preventDefault();
       setClientError(PASSWORDS_NOT_MATCH);
@@ -98,7 +102,10 @@ export default function RegisterPage() {
                 id="email"
                 name="email"
                 type="email"
-                defaultValue={state?.email || ""}
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                }}
                 required
                 disabled={isPending}
               />
@@ -119,7 +126,6 @@ export default function RegisterPage() {
               <Label htmlFor="confirmPassword">确认密码</Label>
               <Input
                 id="confirmPassword"
-                name="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={handleConfirmChange}
