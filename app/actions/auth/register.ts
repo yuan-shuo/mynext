@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import { sendVerificationEmail } from "@/lib/email";
 import { randomUUID } from "crypto";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import redis from "@/lib/redis";
 
 export type RegisterState = {
   errorCode?: string;
@@ -63,17 +64,28 @@ export async function register(
   // 加密密码
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // // 创建用户（未验证）
-  // await prisma.user.create({
-  //   data: {
-  //     email,
-  //     password: hashedPassword,
-  //     emailVerified: null,
-  //   },
-  // });
+  // 创建用户（未验证）
+  await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+      emailVerified: null,
+    },
+  });
 
   // 生成验证 token
   const token = randomUUID();
+  const expTime = 86400;
+
+  // 删除该邮箱旧的 token（如果有）
+  const oldToken = await redis.get(`verification:email:${email}`);
+  if (oldToken) {
+    await redis.del(`verification:${oldToken}`);
+    await redis.del(`verification:email:${email}`);
+  }
+  // redis加入token
+  await redis.setex(`verification:${token}`, expTime, email);
+  await redis.setex(`verification:email:${email}`, expTime, token);
 
   // // 保存到 VerificationToken 表
   // await prisma.verificationToken.create({
@@ -84,26 +96,26 @@ export async function register(
   //   },
   // });
 
-  // 使用事务确保原子性
-  await prisma.$transaction(async (tx) => {
-    // 创建用户
-    await tx.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        emailVerified: null,
-      },
-    });
+  // // 使用事务确保原子性
+  // await prisma.$transaction(async (tx) => {
+  //   // 创建用户
+  //   await tx.user.create({
+  //     data: {
+  //       email,
+  //       password: hashedPassword,
+  //       emailVerified: null,
+  //     },
+  //   });
 
-    // 创建验证 token
-    await tx.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
-    });
-  });
+  //   // 创建验证 token
+  //   await tx.verificationToken.create({
+  //     data: {
+  //       identifier: email,
+  //       token,
+  //       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  //     },
+  //   });
+  // });
 
   // 发送验证邮件
   await sendVerificationEmail(email, token);

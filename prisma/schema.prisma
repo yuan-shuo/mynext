@@ -59,13 +59,13 @@ model Session {
   updatedAt DateTime @updatedAt
 }
  
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
+// model VerificationToken {
+//   identifier String
+//   token      String
+//   expires    DateTime
  
-  @@id([identifier, token])
-}
+//   @@id([identifier, token])
+// }
  
 // Optional for WebAuthn support
 model Authenticator {
