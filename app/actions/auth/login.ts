@@ -3,6 +3,7 @@
 import { signIn } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { rlLogin } from "@/ratelimit/auth";
 
 export type LoginState = {
   errorCode?: string;
@@ -26,6 +27,17 @@ export async function login(
       // email: email,
     };
   }
+
+  //     限流
+  // ============
+  const rateLimitResult = await rlLogin(email);
+  if (!rateLimitResult.success) {
+    return {
+      errorCode: ErrorCode.TOO_MANY_REQUEST,
+      error: ErrorMessage[ErrorCode.TOO_MANY_REQUEST],
+    };
+  }
+  // ============
 
   const user = await prisma.user.findUnique({
     where: { email },
