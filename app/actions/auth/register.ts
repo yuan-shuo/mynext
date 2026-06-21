@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { sendVerificationEmail } from "@/lib/email";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { rlRegister } from "@/ratelimit/auth";
 
 export type RegisterState = {
   errorCode?: string;
@@ -36,6 +37,17 @@ export async function register(
       // email,
     };
   }
+
+  //     限流
+  // ============
+  const rateLimitResult = await rlRegister(email);
+  if (!rateLimitResult.success) {
+    return {
+      errorCode: ErrorCode.TOO_MANY_REQUEST,
+      error: ErrorMessage[ErrorCode.TOO_MANY_REQUEST],
+    };
+  }
+  // ============
 
   // 密码长度校验
   if (password.length < 6) {

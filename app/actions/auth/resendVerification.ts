@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { sendVerificationEmail } from "@/lib/email";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { rlResendVerification } from "@/ratelimit/auth";
 
 export type ResendState = {
   errorCode?: string;
@@ -30,6 +31,17 @@ export async function resendVerificationEmail(
       error: ErrorMessage[ErrorCode.INVALID_EMAIL],
     };
   }
+
+  //     限流
+  // ============
+  const rateLimitResult = await rlResendVerification(email);
+  if (!rateLimitResult.success) {
+    return {
+      errorCode: ErrorCode.TOO_MANY_REQUEST,
+      error: ErrorMessage[ErrorCode.TOO_MANY_REQUEST],
+    };
+  }
+  // ============
 
   // 查找用户
   const user = await prisma.user.findUnique({

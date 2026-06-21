@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { sendEmailChangeLink } from "@/lib/email";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
 import { getTokenEmail, cleanToken } from "@/lib/verification-token";
+import { rlChangeEmail } from "@/ratelimit/auth";
 
 export type ChangeEmailState = {
   errorCode?: string;
@@ -23,6 +24,17 @@ export async function sendChangeEmailLink(
       error: ErrorMessage[ErrorCode.UNAUTHORIZED],
     };
   }
+
+  //     限流
+  // ============
+  const rateLimitResult = await rlChangeEmail(session.user.id);
+  if (!rateLimitResult.success) {
+    return {
+      errorCode: ErrorCode.TOO_MANY_REQUEST,
+      error: ErrorMessage[ErrorCode.TOO_MANY_REQUEST],
+    };
+  }
+  // ============
 
   // ** 表单数据提取
   const newEmail = formData.get("newEmail") as string;

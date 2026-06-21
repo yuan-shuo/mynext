@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { rlChangePassword } from "@/ratelimit/auth";
 
 export type ChangePasswordState = {
   errorCode?: string;
@@ -22,6 +23,17 @@ export async function changePassword(
       error: ErrorMessage[ErrorCode.UNAUTHORIZED],
     };
   }
+
+  //     限流
+  // ============
+  const rateLimitResult = await rlChangePassword(session.user.id);
+  if (!rateLimitResult.success) {
+    return {
+      errorCode: ErrorCode.TOO_MANY_REQUEST,
+      error: ErrorMessage[ErrorCode.TOO_MANY_REQUEST],
+    };
+  }
+  // ============
 
   // ** 表单数据提取
   const oldPassword = formData.get("oldPassword") as string;

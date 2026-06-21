@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { sendResetPasswordEmail, sendVerificationEmail } from "@/lib/email";
 import { ErrorCode, ErrorMessage } from "@/lib/errors";
+import { rlForgotPassword } from "@/ratelimit/auth";
 
 export type ForgotPasswordState = {
   errorCode?: string;
@@ -30,6 +31,17 @@ export async function forgotPassword(
       error: ErrorMessage[ErrorCode.INVALID_EMAIL],
     };
   }
+
+  //     限流
+  // ============
+  const rateLimitResult = await rlForgotPassword(email);
+  if (!rateLimitResult.success) {
+    return {
+      errorCode: ErrorCode.TOO_MANY_REQUEST,
+      error: ErrorMessage[ErrorCode.TOO_MANY_REQUEST],
+    };
+  }
+  // ============
 
   const user = await prisma.user.findUnique({
     where: { email },
