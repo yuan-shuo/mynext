@@ -8,7 +8,7 @@ on:
       - "docs/**"
       - "scripts/**"
   pull_request:
-    branches: [main]
+    branches: ["**"]
     paths-ignore:
       - "**.md"
       - "docs/**"
@@ -85,3 +85,6 @@ jobs:
 
       - name: Check formatting
         run: pnpm run format:check
+
+      - name: Run E2E test
+        run: pnpm test

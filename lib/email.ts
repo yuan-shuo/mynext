@@ -56,8 +56,18 @@ export async function sendVerificationEmail(email: string) {
     subject: "验证你的邮箱",
     html: `
       <p>请点击以下链接验证你的邮箱：</p>
-      <a href="${verificationUrl}">${verificationUrl}</a>
-      <p>链接 24 小时内有效。</p>
+      <a 
+        href="${verificationUrl}" 
+        data-testid="verification-link"
+        style="display:inline-block; padding:10px 20px; background:#0070f3; color:white; text-decoration:none; border-radius:4px;"
+      >
+        验证邮箱
+      </a>
+      <p style="margin-top:20px; font-size:12px; color:#666;">
+        或复制以下链接到浏览器访问：<br>
+        <span style="word-break:break-all;">${verificationUrl}</span>
+      </p>
+      <p style="font-size:12px; color:#999;">链接 24 小时内有效。</p>
     `,
   });
 }
@@ -82,9 +92,19 @@ export async function sendResetPasswordEmail(email: string) {
     subject: "重置密码",
     html: `
       <p>请点击以下链接重置密码：</p>
-      <a href="${resetUrl}">${resetUrl}</a>
-      <p>链接 1 小时内有效。</p>
-      <p>如果你没有请求重置密码，请忽略这封邮件。</p>
+      <a 
+        href="${resetUrl}" 
+        data-testid="reset-password-link"
+        style="display:inline-block; padding:10px 20px; background:#dc3545; color:white; text-decoration:none; border-radius:4px;"
+      >
+        重置密码
+      </a>
+      <p style="margin-top:20px; font-size:12px; color:#666;">
+        或复制以下链接到浏览器访问：<br>
+        <span style="word-break:break-all;">${resetUrl}</span>
+      </p>
+      <p style="font-size:12px; color:#999;">链接 1 小时内有效。</p>
+      <p style="font-size:12px; color:#999;">如果你没有请求重置密码，请忽略这封邮件。</p>
     `,
   });
 }
@@ -109,9 +129,19 @@ export async function sendEmailChangeLink(email: string, userId: string) {
     subject: "确认更换邮箱",
     html: `
       <p>请点击以下链接确认更换邮箱：</p>
-      <a href="${confirmUrl}">${confirmUrl}</a>
-      <p>链接 1 小时内有效。</p>
-      <p>如果不是你本人操作，请忽略这封邮件。</p>
+      <a 
+        href="${confirmUrl}" 
+        data-testid="change-email-link"
+        style="display:inline-block; padding:10px 20px; background:#28a745; color:white; text-decoration:none; border-radius:4px;"
+      >
+        确认更换邮箱
+      </a>
+      <p style="margin-top:20px; font-size:12px; color:#666;">
+        或复制以下链接到浏览器访问：<br>
+        <span style="word-break:break-all;">${confirmUrl}</span>
+      </p>
+      <p style="font-size:12px; color:#999;">链接 1 小时内有效。</p>
+      <p style="font-size:12px; color:#999;">如果不是你本人操作，请忽略这封邮件。</p>
     `,
   });
 }

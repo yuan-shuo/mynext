@@ -1,0 +1,1 @@
+$env:ENV_FILE=".env"; pnpm test:env
