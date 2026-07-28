@@ -2,17 +2,35 @@ import { APIRequestContext } from "@playwright/test";
 
 const MAILPIT_API = process.env.MAILPIT_API || "http://localhost:8025";
 
+// 定义 Mailpit API 响应类型
+export interface EmailFrom {
+  Name: string;
+  Address: string;
+}
+
+export interface EmailTo {
+  Name: string;
+  Address: string;
+}
+
 export interface Email {
   ID: string;
   MessageID: string;
   Read: boolean;
-  From: { Name: string; Address: string };
-  To: Array<{ Name: string; Address: string }>;
+  From: EmailFrom;
+  To: EmailTo[];
   Subject: string;
   Created: string;
   Snippet: string;
   HTML?: string;
   Text?: string;
+}
+
+// Mailpit 列表响应
+interface MessageListResponse {
+  messages: Email[];
+  total: number;
+  count: number;
 }
 
 export class MailpitHelper {
@@ -21,39 +39,39 @@ export class MailpitHelper {
   /**
    * 获取所有邮件列表
    */
-  async getMessageList(): Promise<any> {
+  async getMessageList(): Promise<MessageListResponse> {
     const response = await this.request.get(`${MAILPIT_API}/api/v1/messages`);
-    const data = await response.json();
+    const data = (await response.json()) as MessageListResponse;
     return data;
   }
 
   /**
    * 获取单封邮件的完整内容
    */
-  async getMessageContent(id: string): Promise<any> {
+  async getMessageContent(id: string): Promise<Email> {
     const response = await this.request.get(
       `${MAILPIT_API}/api/v1/message/${id}`
     );
-    const data = await response.json();
+    const data = (await response.json()) as Email;
     return data;
   }
 
   /**
    * 获取特定收件人的最新邮件完整内容
    */
-  async getLatestEmailByRecipient(email: string): Promise<any | null> {
+  async getLatestEmailByRecipient(email: string): Promise<Email | null> {
     // 先获取邮件列表
     const list = await this.getMessageList();
     const messages = list.messages || [];
 
     // 过滤出目标收件人的邮件
     const filtered = messages
-      .filter((e: any) => {
+      .filter((e: Email) => {
         const toList = Array.isArray(e.To) ? e.To : [e.To];
-        return toList.some((to: any) => to.Address === email);
+        return toList.some((to: EmailTo) => to.Address === email);
       })
       .sort(
-        (a: any, b: any) =>
+        (a: Email, b: Email) =>
           new Date(b.Created).getTime() - new Date(a.Created).getTime()
       );
 
@@ -69,7 +87,10 @@ export class MailpitHelper {
   /**
    * 等待新邮件到达
    */
-  async waitForEmail(recipient: string, timeout: number = 30000): Promise<any> {
+  async waitForEmail(
+    recipient: string,
+    timeout: number = 30000
+  ): Promise<Email> {
     const startTime = Date.now();
     const interval = 2000;
 
@@ -86,7 +107,7 @@ export class MailpitHelper {
   /**
    * 从邮件内容中提取验证链接
    */
-  extractVerificationLink(email: any): string | null {
+  extractVerificationLink(email: Email): string | null {
     // 获取 HTML 内容
     const html = email.HTML || "";
     const text = email.Text || "";
@@ -129,7 +150,7 @@ export class MailpitHelper {
   /**
    * 从邮件内容中提取重置密码链接
    */
-  extractResetLink(email: any): string | null {
+  extractResetLink(email: Email): string | null {
     const html = email.HTML || "";
     const text = email.Text || "";
 
@@ -164,7 +185,7 @@ export class MailpitHelper {
   /**
    * 从邮件内容中提取换绑邮箱链接
    */
-  extractChangeEmailLink(email: any): string | null {
+  extractChangeEmailLink(email: Email): string | null {
     const html = email.HTML || "";
     const text = email.Text || "";
 
