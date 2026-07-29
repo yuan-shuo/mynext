@@ -70,24 +70,6 @@ export async function sendChangeEmailLink(
     };
   }
 
-  // await prisma.verificationToken.deleteMany({
-  //   where: { identifier: newEmail },
-  // });
-
-  // const token = randomUUID();
-  // await prisma.verificationToken.create({
-  //   data: {
-  //     identifier: newEmail,
-  //     token,
-  //     expires: new Date(Date.now() + 60 * 60 * 1000),
-  //   },
-  // });
-
-  // // 生成验证 token
-  // const token = randomUUID();
-
-  // await cleanAndSetNewToken(token, newEmail);
-
   // 发送验证邮件
   try {
     await sendEmailChangeLink(newEmail, session.user.id);
@@ -95,8 +77,6 @@ export async function sendChangeEmailLink(
     const message = error instanceof Error ? error.message : "未知错误";
     return { success: false, error: message };
   }
-
-  // await sendEmailChangeLink(newEmail, token, session.user.id);
 
   return { success: true };
 }
@@ -111,24 +91,6 @@ export async function confirmEmailChange(token: string, userId: string) {
       error: ErrorMessage[ErrorCode.LINK_INVALID],
     };
   }
-
-  // const verificationToken = await prisma.verificationToken.findFirst({
-  //   where: { token },
-  // });
-
-  // if (!verificationToken) {
-  //   return {
-  //     errorCode: ErrorCode.LINK_INVALID,
-  //     error: ErrorMessage[ErrorCode.LINK_INVALID],
-  //   };
-  // }
-
-  // if (verificationToken.expires < new Date()) {
-  //   return {
-  //     errorCode: ErrorCode.LINK_EXPIRED,
-  //     error: ErrorMessage[ErrorCode.LINK_EXPIRED],
-  //   };
-  // }
 
   const newEmail = redisEmail;
 
@@ -147,7 +109,7 @@ export async function confirmEmailChange(token: string, userId: string) {
     where: { id: userId },
     data: {
       email: newEmail,
-      emailVerified: null,
+      emailVerified: new Date(), // 既然已经通过邮件确认，那么就不再需要二次验证邮箱了，只需要更新验证时间
     },
   });
 

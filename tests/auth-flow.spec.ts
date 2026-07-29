@@ -4,6 +4,7 @@ import {
   generateRandomEmail,
   generateRandomPassword,
 } from "./utils/auth-helpers";
+import { ErrorCode, ErrorMessage } from "@/lib/errors";
 
 test.describe("认证流程测试", () => {
   // 设置为串行执行
@@ -226,6 +227,145 @@ test.describe("认证流程测试", () => {
     await page.fill('input[name="email"]', testEmail);
     await page.fill('input[name="password"]', testNewPassword);
     await page.click('button[type="submit"]');
+
+    // 验证登录成功，跳转到首页
+    await expect(page).toHaveURL("/");
+  });
+
+  test("5. 修改密码", async ({ page }) => {
+    // 先注册并验证用户
+    await page.goto("/auth/register");
+    await page.fill('input[name="email"]', testEmail);
+    await page.fill('input[name="password"]', testPassword);
+    await page.fill("input#confirmPassword", testPassword);
+    await page.click('button[type="submit"]');
+
+    const email = await mailpit.waitForEmail(testEmail);
+    const link = mailpit.extractVerificationLink(email);
+    expect(link).toBeTruthy();
+
+    await page.goto(link!);
+    await expect(page.locator("text=邮箱验证成功！请登录")).toBeVisible();
+
+    // 登录
+    await page.goto("/auth/login");
+    await page.fill('input[name="email"]', testEmail);
+    await page.fill('input[name="password"]', testPassword);
+    await page.click('button[type="submit"]');
+
+    // 验证登录成功，跳转到首页
+    await expect(page).toHaveURL("/");
+
+    // 进入修改密码页面
+    await page.goto("/auth/change-password");
+
+    // 填写旧密码 + 新密码
+    const newPassword = generateRandomPassword();
+    await page.fill("input#password", testPassword);
+    await page.fill("input#newPassword", newPassword);
+    await page.fill("input#confirmPassword", newPassword);
+
+    // 点击"修改密码"按钮
+    await page.getByRole("button", { name: "修改密码" }).click();
+
+    // 成功后应回到首页
+    await expect(page).toHaveURL("/");
+
+    // 退出登录
+    await page.getByRole("button", { name: "退出登录" }).click();
+    // 确认登出
+    await expect(page).toHaveURL("/");
+
+    // 回到登录页面
+    await page.goto("/auth/login");
+
+    // 旧密码失效
+    await page.fill('input[name="email"]', testEmail);
+    await page.fill("input#password", testPassword);
+    await page.click('button[type="submit"]');
+    await expect(
+      page.getByText(ErrorMessage[ErrorCode.LOGIN_FAILED])
+    ).toBeVisible();
+
+    // 新密码生效
+    await page.fill('input[name="email"]', testEmail);
+    await page.fill('input[name="password"]', newPassword);
+    await page.click('button[type="submit"]');
+
+    // 验证登录成功，跳转到首页
+    await expect(page).toHaveURL("/");
+  });
+
+  test("6. 换绑邮箱", async ({ page }) => {
+    // 先注册并验证用户
+    await page.goto("/auth/register");
+    await page.fill('input[name="email"]', testEmail);
+    await page.fill('input[name="password"]', testPassword);
+    await page.fill("input#confirmPassword", testPassword);
+    await page.click('button[type="submit"]');
+
+    let email = await mailpit.waitForEmail(testEmail);
+    let link = mailpit.extractVerificationLink(email);
+    expect(link).toBeTruthy();
+
+    await page.goto(link!);
+    await expect(page.locator("text=邮箱验证成功！请登录")).toBeVisible();
+
+    // 登录
+    await page.goto("/auth/login");
+    await page.fill('input[name="email"]', testEmail);
+    await page.fill('input[name="password"]', testPassword);
+    await page.click('button[type="submit"]');
+
+    // 验证登录成功，跳转到首页
+    await expect(page).toHaveURL("/");
+
+    // 进入修改邮箱页面
+    await page.goto("/auth/change-email");
+
+    // 填写新邮箱
+    const newEmail = generateRandomEmail();
+    await page.fill("input#newEmail", newEmail);
+    // 点击"发送验证链接"按钮
+    await page.getByRole("button", { name: "发送验证链接" }).click();
+
+    // 断言成功提示
+    await expect(
+      page.getByText("验证链接已发送到新邮箱，请点击邮件中的链接完成邮箱换绑。")
+    ).toBeVisible();
+
+    // 接收换绑确认邮件
+    email = await mailpit.waitForEmail(newEmail);
+    link = mailpit.extractChangeEmailLink(email);
+
+    // 跳转确认链接
+    expect(link).toBeTruthy();
+    await page.goto(link!);
+
+    // 断言换绑成功
+    await expect(
+      page.getByText("邮箱更换成功！请使用新邮箱登录")
+    ).toBeVisible();
+
+    // 点击"返回登录"按钮
+    await page.getByRole("link", { name: "返回登录" }).click();
+    // 断言返回成功
+    await expect(page).toHaveURL(/\/auth\/login/);
+
+    // 旧邮箱无法登录
+    await page.goto("/auth/login");
+    await page.fill('input[name="email"]', testEmail);
+    await page.fill('input[name="password"]', testPassword);
+    await page.getByRole("button", { name: "登录" }).click();
+    await expect(
+      page.getByText(ErrorMessage[ErrorCode.LOGIN_FAILED])
+    ).toBeVisible();
+
+    // 新邮箱可以登录
+    await page.goto("/auth/login");
+    await page.fill('input[name="email"]', newEmail);
+    await page.fill('input[name="password"]', testPassword);
+    await page.getByRole("button", { name: "登录" }).click();
 
     // 验证登录成功，跳转到首页
     await expect(page).toHaveURL("/");

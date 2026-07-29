@@ -13,8 +13,19 @@
 
 ### 登录后
 
-- [ ] 修改密码
-- [ ] 换绑邮箱
+- [x] 修改密码
+- [x] 换绑邮箱
+
+# 现有问题
+
+## 登录密码错误会打印过量信息而非正常日志
+
+问题应该在 lib/auth.ts 里，后续排查吧
+
+```Shell
+[auth][error] CredentialsSignin: Read more at https://errors.authjs.dev#credentialssignin
+    at Module.callback (C:\Users\yuanShuo\db\code\codeBase\TS_code\my-fullstack-app\.next\dev\server\chunks\ssr\0fm__@auth_core_0j1t088._.js:4314:30)
+```
 
 # 杂项
 
