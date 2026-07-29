@@ -21,15 +21,36 @@ interface RateLimitResp {
   ttl: number;
 }
 
-async function rateLimit(key: string, exp: number): Promise<RateLimitResp> {
+/**
+ * 限流函数 - 允许在一定时间窗口内发送指定次数的邮件
+ * @param key Redis 键名
+ * @param exp 时间窗口（秒）
+ * @param limit 允许的最大次数（默认 5 次）
+ * @returns { allow: boolean, ttl: number }
+ */
+async function rateLimit(
+  key: string,
+  exp: number,
+  limit: number = 5
+): Promise<RateLimitResp> {
+  const count = await redis.incr(key);
+
+  // 第一次设置，添加过期时间
+  if (count === 1) {
+    await redis.expire(key, exp);
+  }
+
+  // 获取剩余的 TTL
   const ttl = await redis.ttl(key);
-  if (ttl > 0) {
+
+  // 如果超过限制，拒绝
+  if (count > limit) {
     return {
       allow: false,
-      ttl: ttl,
+      ttl: ttl > 0 ? ttl : 0,
     };
   }
-  await redis.setex(key, exp, 0);
+
   return {
     allow: true,
     ttl: 0,
@@ -37,8 +58,13 @@ async function rateLimit(key: string, exp: number): Promise<RateLimitResp> {
 }
 
 export async function sendVerificationEmail(email: string) {
-  // 发送邮件限流
-  const rl = await rateLimit(`ratelimit:sendVerificationEmail:${email}`, 60);
+  // 发送邮件限流：60秒内最多发送 3 封
+  const rl = await rateLimit(
+    `ratelimit:sendVerificationEmail:${email}`,
+    60,
+    3 // 60秒内允许 3 次
+  );
+
   if (!rl.allow) {
     throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
   }
@@ -73,8 +99,13 @@ export async function sendVerificationEmail(email: string) {
 }
 
 export async function sendResetPasswordEmail(email: string) {
-  // 发送邮件限流
-  const rl = await rateLimit(`ratelimit:sendResetPasswordEmail:${email}`, 60);
+  // 发送邮件限流：60秒内最多发送 3 封
+  const rl = await rateLimit(
+    `ratelimit:sendResetPasswordEmail:${email}`,
+    60,
+    3
+  );
+
   if (!rl.allow) {
     throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
   }
@@ -110,8 +141,9 @@ export async function sendResetPasswordEmail(email: string) {
 }
 
 export async function sendEmailChangeLink(email: string, userId: string) {
-  // 发送邮件限流
-  const rl = await rateLimit(`ratelimit:sendEmailChangeLink:${email}`, 60);
+  // 发送邮件限流：60秒内最多发送 3 封
+  const rl = await rateLimit(`ratelimit:sendEmailChangeLink:${email}`, 60, 3);
+
   if (!rl.allow) {
     throw new Error(`发送邮件过于频繁，请 ${rl.ttl} 秒后再试`);
   }
